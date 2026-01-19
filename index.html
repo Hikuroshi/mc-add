@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Add Minecraft Bedrock Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .card {
+        background: #020617;
+        padding: 24px;
+        border-radius: 12px;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+      }
+      p {
+        font-size: 0.9rem;
+        opacity: 0.85;
+      }
+      a {
+        display: block;
+        margin-top: 16px;
+        padding: 12px;
+        background: #22c55e;
+        color: #022c22;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+      a:hover {
+        background: #16a34a;
+      }
+      .error {
+        color: #f87171;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1 id="title">Add Minecraft Server</h1>
+      <p id="desc">Opening Minecraft…</p>
+      <a id="fallback" href="#" style="display: none">Add Server Manually</a>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get("name");
+      const host = params.get("host");
+      const port = params.get("port");
+
+      if (!name || !host || !port) {
+        document.getElementById("desc").textContent =
+          "Invalid or missing parameters.";
+        document.getElementById("desc").className = "error";
+      } else {
+        const mcLink = `minecraft://?addExternalServer=${decodeURIComponent(name)}|${host}:${port}`;
+
+        document.getElementById("title").textContent = name;
+        document.getElementById("fallback").href = mcLink;
+        document.getElementById("fallback").style.display = "block";
+
+        // auto redirect
+        setTimeout(() => {
+          window.location.href = mcLink;
+        }, 500);
+      }
+    </script>
+  </body>
+</html>
