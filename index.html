@@ -27,16 +27,41 @@
       }
       h1 {
         font-size: 1.25rem;
-        margin-bottom: 8px;
+        margin: 0 0 8px;
       }
       p {
         font-size: 0.9rem;
         opacity: 0.85;
+        margin: 6px 0;
+      }
+      .meta {
+        margin-top: 15px;
+        padding: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(15, 23, 42, 0.45);
+        border-radius: 10px;
+        text-align: left;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 4px 0;
+        font-size: 0.9rem;
+      }
+      .label {
+        color: #94a3b8;
+      }
+      .value {
+        font-weight: 700;
+        color: #e2e8f0;
+        word-break: break-all;
+        text-align: right;
       }
       a {
         display: block;
         margin-top: 16px;
-        padding: 12px;
+        padding: 10px;
         background: #22c55e;
         color: #022c22;
         text-decoration: none;
@@ -48,13 +73,27 @@
       }
       .error {
         color: #f87171;
+        opacity: 1;
       }
     </style>
   </head>
+
   <body>
     <div class="card">
       <h1 id="title">Add Minecraft Server</h1>
       <p id="desc">Opening Minecraft…</p>
+
+      <div id="meta" class="meta" style="display: none">
+        <div class="row">
+          <span class="label">Host</span>
+          <span class="value" id="hostText">-</span>
+        </div>
+        <div class="row">
+          <span class="label">Port</span>
+          <span class="value" id="portText">-</span>
+        </div>
+      </div>
+
       <a id="fallback" href="#" style="display: none">Add Server Manually</a>
     </div>
 
@@ -64,18 +103,29 @@
       const host = params.get("host");
       const port = params.get("port");
 
+      const titleEl = document.getElementById("title");
+      const descEl = document.getElementById("desc");
+      const fallbackEl = document.getElementById("fallback");
+      const metaEl = document.getElementById("meta");
+      const hostTextEl = document.getElementById("hostText");
+      const portTextEl = document.getElementById("portText");
+
       if (!name || !host || !port) {
-        document.getElementById("desc").textContent =
-          "Invalid or missing parameters.";
-        document.getElementById("desc").className = "error";
+        descEl.textContent = "Invalid or missing parameters.";
+        descEl.className = "error";
       } else {
-        const mcLink = `minecraft://?addExternalServer=${decodeURIComponent(name)}|${host}:${port}`;
+        titleEl.textContent = name;
+        hostTextEl.textContent = host;
+        portTextEl.textContent = port;
+        metaEl.style.display = "block";
 
-        document.getElementById("title").textContent = name;
-        document.getElementById("fallback").href = mcLink;
-        document.getElementById("fallback").style.display = "block";
+        const mcLink = `minecraft://?addExternalServer=${encodeURIComponent(
+          name,
+        )}|${host}:${port}`;
 
-        // auto redirect
+        fallbackEl.href = mcLink;
+        fallbackEl.style.display = "block";
+
         setTimeout(() => {
           window.location.href = mcLink;
         }, 500);
