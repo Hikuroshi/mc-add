@@ -13,9 +13,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 100vh;
+        min-height: 100vh;
         margin: 0;
+        padding: 16px;
+        box-sizing: border-box;
       }
+
       .card {
         background: #020617;
         padding: 24px;
@@ -25,15 +28,18 @@
         text-align: center;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       }
+
       h1 {
         font-size: 1.25rem;
         margin: 0 0 8px;
       }
+
       p {
         font-size: 0.9rem;
         opacity: 0.85;
         margin: 6px 0;
       }
+
       .meta {
         margin-top: 15px;
         padding: 12px;
@@ -42,6 +48,7 @@
         border-radius: 10px;
         text-align: left;
       }
+
       .row {
         display: flex;
         justify-content: space-between;
@@ -49,31 +56,99 @@
         padding: 4px 0;
         font-size: 0.9rem;
       }
+
       .label {
         color: #94a3b8;
       }
+
       .value {
         font-weight: 700;
         color: #e2e8f0;
         word-break: break-all;
         text-align: right;
       }
+
+      form {
+        margin-top: 16px;
+        text-align: left;
+      }
+
+      label {
+        display: block;
+        margin-top: 12px;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        color: #cbd5e1;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 8px;
+        background: #0f172a;
+        color: #e5e7eb;
+        font-size: 0.95rem;
+        outline: none;
+      }
+
+      input:focus {
+        border-color: #22c55e;
+      }
+
+      button,
       a {
         display: block;
-        margin-top: 16px;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 12px;
         padding: 10px;
+        border: none;
         background: #22c55e;
         color: #022c22;
         text-decoration: none;
         border-radius: 8px;
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        text-align: center;
       }
+
+      button:hover,
       a:hover {
         background: #16a34a;
       }
+
+      .secondary {
+        background: #334155;
+        color: #e5e7eb;
+      }
+
+      .secondary:hover {
+        background: #475569;
+      }
+
       .error {
         color: #f87171;
         opacity: 1;
+      }
+
+      .success {
+        color: #4ade80;
+        opacity: 1;
+      }
+
+      .link-box {
+        margin-top: 12px;
+        padding: 10px;
+        border-radius: 8px;
+        background: #0f172a;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        font-size: 0.8rem;
+        color: #cbd5e1;
+        word-break: break-all;
+        display: none;
       }
     </style>
   </head>
@@ -81,7 +156,7 @@
   <body>
     <div class="card">
       <h1 id="title">Add Minecraft Server</h1>
-      <p id="desc">Opening Minecraft…</p>
+      <p id="desc">Masukkan detail server Minecraft Bedrock.</p>
 
       <div id="meta" class="meta" style="display: none">
         <div class="row">
@@ -94,14 +169,27 @@
         </div>
       </div>
 
+      <form id="serverForm" style="display: none">
+        <label for="nameInput">Server Name</label>
+        <input id="nameInput" type="text" placeholder="Contoh: My Server" required />
+
+        <label for="hostInput">Host / IP</label>
+        <input id="hostInput" type="text" placeholder="Contoh: play.example.com" required />
+
+        <label for="portInput">Port</label>
+        <input id="portInput" type="number" placeholder="Contoh: 19132" value="19132" required />
+
+        <button type="submit">Open Minecraft</button>
+        <button type="button" id="copyBtn" class="secondary">Copy Link</button>
+
+        <div id="generatedLink" class="link-box"></div>
+      </form>
+
       <a id="fallback" href="#" style="display: none">Add Server Manually</a>
     </div>
 
     <script>
       const params = new URLSearchParams(window.location.search);
-      const name = params.get("name");
-      const host = params.get("host");
-      const port = params.get("port");
 
       const titleEl = document.getElementById("title");
       const descEl = document.getElementById("desc");
@@ -110,26 +198,114 @@
       const hostTextEl = document.getElementById("hostText");
       const portTextEl = document.getElementById("portText");
 
-      if (!name || !host || !port) {
-        descEl.textContent = "Invalid or missing parameters.";
-        descEl.className = "error";
-      } else {
+      const serverForm = document.getElementById("serverForm");
+      const nameInput = document.getElementById("nameInput");
+      const hostInput = document.getElementById("hostInput");
+      const portInput = document.getElementById("portInput");
+      const copyBtn = document.getElementById("copyBtn");
+      const generatedLink = document.getElementById("generatedLink");
+
+      const name = params.get("name");
+      const host = params.get("host");
+      const port = params.get("port");
+
+      function buildPageLink(name, host, port) {
+        const url = new URL(window.location.href);
+
+        url.searchParams.set("name", name);
+        url.searchParams.set("host", host);
+        url.searchParams.set("port", port);
+
+        return url.toString();
+      }
+
+      function buildMinecraftLink(name, host, port) {
+        return `minecraft://?addExternalServer=${encodeURIComponent(name)}|${host}:${port}`;
+      }
+
+      function showServerInfo(name, host, port, autoOpen = false) {
         titleEl.textContent = name;
+        descEl.textContent = autoOpen ? "Opening Minecraft…" : "Server siap dibuka di Minecraft.";
+
         hostTextEl.textContent = host;
         portTextEl.textContent = port;
         metaEl.style.display = "block";
 
-        const mcLink = `minecraft://?addExternalServer=${encodeURIComponent(
-          name,
-        )}|${host}:${port}`;
+        const mcLink = buildMinecraftLink(name, host, port);
 
         fallbackEl.href = mcLink;
         fallbackEl.style.display = "block";
 
-        setTimeout(() => {
-          window.location.href = mcLink;
-        }, 500);
+        if (autoOpen) {
+          setTimeout(() => {
+            window.location.href = mcLink;
+          }, 500);
+        }
       }
+
+      function showForm() {
+        titleEl.textContent = "Add Minecraft Server";
+        descEl.textContent = "Masukkan detail server Minecraft Bedrock.";
+        serverForm.style.display = "block";
+      }
+
+      function getFormValues() {
+        return {
+          name: nameInput.value.trim(),
+          host: hostInput.value.trim(),
+          port: portInput.value.trim(),
+        };
+      }
+
+      function validateValues(name, host, port) {
+        if (!name || !host || !port) {
+          descEl.textContent = "Semua field wajib diisi.";
+          descEl.className = "error";
+          return false;
+        }
+
+        descEl.className = "";
+        return true;
+      }
+
+      if (name && host && port) {
+        showServerInfo(name, host, port, true);
+      } else {
+        showForm();
+      }
+
+      serverForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const { name, host, port } = getFormValues();
+
+        if (!validateValues(name, host, port)) return;
+
+        showServerInfo(name, host, port, false);
+
+        const mcLink = buildMinecraftLink(name, host, port);
+        window.location.href = mcLink;
+      });
+
+      copyBtn.addEventListener("click", async () => {
+        const { name, host, port } = getFormValues();
+
+        if (!validateValues(name, host, port)) return;
+
+        const pageLink = buildPageLink(name, host, port);
+
+        generatedLink.textContent = pageLink;
+        generatedLink.style.display = "block";
+
+        try {
+          await navigator.clipboard.writeText(pageLink);
+          descEl.textContent = "Link berhasil disalin.";
+          descEl.className = "success";
+        } catch (error) {
+          descEl.textContent = "Gagal menyalin otomatis. Silakan copy link secara manual.";
+          descEl.className = "error";
+        }
+      });
     </script>
   </body>
 </html>
